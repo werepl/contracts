@@ -1,6 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 
-const { testmnemonic,mnemonic } = require('../web3/secrets.json');
+const { testmnemonic,mnemonic } = require('./secrets.json');
 
 module.exports = {
   defaultNetwork: "mainnet",
@@ -13,6 +13,10 @@ module.exports = {
     },
     hardhat: {
     },
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: {mnemonic: mnemonic}
+      },
     testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,

@@ -2,6 +2,7 @@
   "name": "hardhat-project",
   "scripts": {
     "d": "npx hardhat run --network testnet scripts/deploy.js",
+    "dm": "npx hardhat run --network mumbai scripts/deploy.js",
     "dl": "npx hardhat run --network local scripts/deploy.js"
   },
   "devDependencies": {
