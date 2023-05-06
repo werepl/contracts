@@ -64,6 +64,7 @@ function setITContract(address _address) onlyOwner public{
   ITContract=IERC20(_address);
 }
 function listValidator(address _address) onlyWerepl public{
+  require(validators[_address].active==false&&validators[_address].ITStaked==0,"Already listed");
   validator memory newValidator;
   newValidator.active=true;
   validators[_address]=newValidator;
