@@ -83,10 +83,10 @@ function listValidator(address _address) onlyWerepl public{
 }
 function stakeIT() public{
     require(validators[msg.sender].active==true,"Not a validator");
-    require(validators[msg.sender].ITStaked<100000*(10**18),"You can only stake a maximum of 10000 IT.");
-    uint amount = 100000*(10**18)-validators[msg.sender].ITStaked;
+    require(validators[msg.sender].ITStaked<10000*(10**18),"You can only stake a maximum of 10000 IT.");
+    uint amount = 10000*(10**18)-validators[msg.sender].ITStaked;
   ITContract.transferFrom(msg.sender, address(this), amount);
-  validators[msg.sender].ITStaked=100000*(10**18);
+  validators[msg.sender].ITStaked=10000*(10**18);
   emit StakeIT(msg.sender,amount);
 }
 
