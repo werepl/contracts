@@ -87,12 +87,14 @@ function setProPassPrice(uint _price) onlyOwner public{
   emit ProPassPriceChange(proPassPrice,_price);
   proPassPrice=_price;
 }
-    function mint(uint _type) external returns (uint256)
+    function mint(string memory _type) external returns (uint256)
     {
       require(passIds[msg.sender]==0,"Already minted");
-      require(_type==1||_type==2,"Invalid type");
-      uint tokenId = _tokenIds.current();
-        if(_type==1){
+  if (keccak256(abi.encodePacked(_type)) != keccak256(abi.encodePacked('basic'))&&keccak256(abi.encodePacked(_type)) != keccak256(abi.encodePacked('pro'))) {
+  revert();
+  }
+   uint tokenId = _tokenIds.current();
+  if (keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked('basic'))) {
         passDetails[tokenId]=pass(msg.sender,"basic",0,5);
            _mint(msg.sender,tokenId);
            string memory URI = "https://ipfs.io/ipns/k51qzi5uqu5dl60tew1ueo64yp9pzrhgizhaqzipy68c11kqh1ymknjd9pb3ws";
@@ -129,9 +131,9 @@ function setProPassPrice(uint _price) onlyOwner public{
    newEntry.timestamp=block.timestamp;
 passEntries[_passId].push(newEntry);
   if (keccak256(abi.encodePacked(passDetails[_passId].passType)) == keccak256(abi.encodePacked('pro'))) {
-    rewardContract.rewardUser(passDetails[_passId].owner,10);
+    rewardContract.rewardUser(_passId);
   }else{
-        rewardContract.rewardUser(passDetails[_passId].owner,1);
+        rewardContract.rewardUser(_passId);  
   }
   emit NewEntry(_passId,_propId,_validator);
    }

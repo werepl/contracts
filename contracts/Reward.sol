@@ -5,7 +5,7 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Pass.sol";
 import "./Validate.sol";
-
+import "./Pass.sol";
 interface RewardInterface{
   // Logged when daily rewards will be minted and distributed.
   event MintAndDistribute(uint amount);
@@ -17,6 +17,8 @@ interface RewardInterface{
 contract Reward is Ownable, RewardInterface {
 address wereplAddress;
 address passContractAddress;
+Pass passContract;  
+address validateContractAddress;
 Validate validateContract;
 IT ITContract;
 bool lock;
@@ -42,26 +44,37 @@ modifier onlyWerepl{
 function setWerepl(address _address) onlyWerepl public{
   wereplAddress=_address;
 }
+modifier onlyValidateContract{
+  require(msg.sender==validateContractAddress,"Unauthorised");
+  _;
+}
 function setPassContract(address _address) onlyOwner public{
   passContractAddress=_address;
+  passContract = Pass(_address);
 }
 function setITContract(address _address) onlyOwner public{
   ITContract = IT(_address);
 }
 function setValidateContract(address _address) onlyOwner public{
+  validateContractAddress=_address;
   validateContract=Validate(_address);
 }
-function rewardUser(address _address, uint _shares) onlyPassContract public{
-require(_shares==1||_shares==10,"Invalid share amount");
-userShares[_address]=userShares[_address]+_shares;
-dailySharesClaimedByUsers=dailySharesClaimedByUsers+_shares;
-usersClaimedShares.push(_address);
+function rewardUser(uint _passId) onlyPassContract public{
+(address user, string memory passType , ,) = passContract.passDetails(_passId);
+if (keccak256(abi.encodePacked(passType)) == keccak256(abi.encodePacked('pro'))) {
+userShares[user]=userShares[user]+10;
+dailySharesClaimedByUsers=dailySharesClaimedByUsers+10;
+}else{
+userShares[user]=userShares[user]+1;
+dailySharesClaimedByUsers=dailySharesClaimedByUsers+1;
+}
+usersClaimedShares.push(user);
 }
 function claimUserReward() public{
   require(lock==false);
   require(userReward[msg.sender]>0,"You don't have any reward to claim");
   lock=true;
-  ITContract.transfer(msg.sender, userReward[msg.sender]*(10**18));
+  ITContract.transfer(msg.sender, userReward[msg.sender]);
   emit ClaimUserReward(msg.sender,userReward[msg.sender]);
   userReward[msg.sender]=0;
   lock=false;
@@ -70,12 +83,12 @@ function claimValidatorReward() public{
     require(lock==false);
     lock=true;
   require(validatorReward[msg.sender]>0,"You don't have any reward to claim");
-  ITContract.transfer(msg.sender, validatorReward[msg.sender]*(10**18));
+  ITContract.transfer(msg.sender, validatorReward[msg.sender]);
   emit ClaimValidatorReward(msg.sender,validatorReward[msg.sender]);
   validatorReward[msg.sender]=0;
   lock=false;
 }
-function rewardValidator(address _address) onlyWerepl public{
+function rewardValidator(address _address) onlyValidateContract public{
   require(validateContract.getStatus(_address)==true,"Not a validator");
 validatorShares[_address]=validatorShares[_address]+1;
 dailySharesClaimedByValidators=dailySharesClaimedByValidators+1;
@@ -85,16 +98,16 @@ function mintAndDistribute() onlyWerepl public{
     uint mintableAmountForUsers;  
     uint mintableAmountForValidators;
   if(dailySharesClaimedByUsers<250000){
-  mintableAmountForUsers = 5*dailySharesClaimedByUsers;
+  mintableAmountForUsers = 5*dailySharesClaimedByUsers*(10**18);
   }
     if(dailySharesClaimedByUsers>=250000){
-  mintableAmountForUsers = 25000;
+  mintableAmountForUsers = 250000*(10**18);
   }
   if(dailySharesClaimedByValidators<25000){
-  mintableAmountForValidators = 50*dailySharesClaimedByValidators;
+  mintableAmountForValidators = 50*dailySharesClaimedByValidators*(10**18);
   }
       if(dailySharesClaimedByValidators>=25000){
-  mintableAmountForValidators = 25000;
+  mintableAmountForValidators = 25000*(10**18);
   }
 ITContract.reward(mintableAmountForUsers+mintableAmountForValidators);
 for(uint i=0; i<usersClaimedShares.length; i++){

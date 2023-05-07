@@ -15,7 +15,7 @@ contract Payment is Ownable, PaymentInterface{
   ITContract=IERC20(_address);
 }
 function makePayment(address _from, uint _amount) public{
-  ITContract.transferFrom(_from, address(this), _amount*(10**18));
+  ITContract.transferFrom(_from, address(this), _amount);
   emit MakePayment(msg.sender,_amount);
 }
   function withdrawIT() onlyOwner public{

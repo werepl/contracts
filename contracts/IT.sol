@@ -33,7 +33,6 @@ _;
 }
 mapping(uint256 => uint256) private dailyMintedAmount;
 modifier inflation(uint256 _rewardAmount) {
-_rewardAmount=_rewardAmount*(10**18); 
 uint256 currentDay = block.timestamp / 86400;
 uint256 maxMintableAmount = totalSupplyAtStartOfYear * inflationRate*10**16 / 365 / (10**18);
 require(_rewardAmount > 0, "Amount should be more than 0");
@@ -53,7 +52,7 @@ delete rewardContracts[_index];
 }
 
 function reward(uint _rewardAmount) onlyRewardContracts inflation(_rewardAmount) public{
-_mint(msg.sender,_rewardAmount*(10**18));
+_mint(msg.sender,_rewardAmount);
 emit Mint(_rewardAmount);
 }
 function burn(uint _burnAmount) onlyOwner public{
