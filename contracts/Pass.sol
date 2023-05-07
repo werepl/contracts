@@ -43,7 +43,7 @@ uint    timestamp;
 
 mapping(address=>uint) public passIds;
 mapping(uint=>pass) public passDetails;
-mapping(uint=>passEntry[]) public passEntries;
+mapping(uint=>passEntry[]) private passEntries;
     constructor(uint _proPassPrice)
      ERC721("WereplPass", "Pass") {
               _tokenIds.increment();
@@ -73,6 +73,10 @@ super._beforeTokenTransfer(from, to, tokenId, batchSize);
 modifier onlyValidateContract{
   require(msg.sender==validateContractAddress,"Unauthorised");
   _;
+}
+
+function getPassEntries(uint _passId) public view returns(passEntry[] memory){
+return passEntries[_passId];
 }
 function setValidateContract(address _address) onlyOwner public{
   validateContractAddress=_address;

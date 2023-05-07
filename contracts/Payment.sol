@@ -11,10 +11,24 @@ interface PaymentInterface{
 }
 contract Payment is Ownable, PaymentInterface{
   IERC20 ITContract;
+  address[] public whitelistedContracts;
+modifier onlyWhitelistedContracts{
+bool isWhitelistedContract;
+for(uint i=0; i<whitelistedContracts.length; i++){
+if(msg.sender==whitelistedContracts[i]){
+  isWhitelistedContract=true;
+}
+}
+require(isWhitelistedContract==true,"Unauthorised");
+_;
+}
+function whitelistContract(address _address) onlyOwner public{
+whitelistedContracts.push(_address);
+}
   function setITContract(address _address) onlyOwner public{
   ITContract=IERC20(_address);
 }
-function makePayment(address _from, uint _amount) public{
+function makePayment(address _from, uint _amount) onlyWhitelistedContracts public{
   ITContract.transferFrom(_from, address(this), _amount);
   emit MakePayment(msg.sender,_amount);
 }
