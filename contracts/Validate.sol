@@ -117,7 +117,7 @@ function unstakeIT() public{
    }
 function imposePenalty(address _validator) private{
   require(validators[_validator].active==true,"Not a validator");
-  paymentContract.makePayment(address(this),100*(10**18));
+  paymentContract.contractPayment(address(this),100*(10**18));
   validators[msg.sender].ITStaked=validators[msg.sender].ITStaked-100*(10**18);
   if (validators[_validator].penalties == 0) {
   validators[_validator].penalties = 1;
@@ -130,7 +130,7 @@ function imposePenalty(address _validator) private{
   validators[_validator].penalties++;
   emit ImposePenalty(msg.sender,100*(10**18));
   if (validators[_validator].penalties == 3) {
-  paymentContract.makePayment(address(this), (validators[_validator].ITStaked * 20) / 100);
+  paymentContract.contractPayment(address(this), (validators[_validator].ITStaked * 20) / 100);
   validators[_validator].ITStaked = validators[_validator].ITStaked - (validators[_validator].ITStaked / 5);
   validators[_validator].penalties=0;
   validators[_validator].active=false;

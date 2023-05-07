@@ -28,8 +28,12 @@ whitelistedContracts.push(_address);
   function setITContract(address _address) onlyOwner public{
   ITContract=IERC20(_address);
 }
-function makePayment(address _from, uint _amount) onlyWhitelistedContracts public{
+function contractPayment(address _from, uint _amount) onlyWhitelistedContracts public{
   ITContract.transferFrom(_from, address(this), _amount);
+  emit MakePayment(_from,_amount);
+}
+function directPayment(uint _amount) public{
+  ITContract.transferFrom(msg.sender, address(this), _amount);
   emit MakePayment(msg.sender,_amount);
 }
   function withdrawIT() onlyOwner public{

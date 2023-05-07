@@ -106,7 +106,7 @@ function setProPassPrice(uint _price) onlyOwner public{
         _tokenIds.increment();
         emit Mint(tokenId,msg.sender,"basic");
         }else{
-        paymentContract.makePayment(msg.sender, proPassPrice);
+        paymentContract.contractPayment(msg.sender, proPassPrice);
          _mint(msg.sender,tokenId);
         _setTokenURI(tokenId, Strings.toString(tokenId));
         _tokenIds.increment();
@@ -121,7 +121,7 @@ function setProPassPrice(uint _price) onlyOwner public{
        external
     {
       require(balanceOf(msg.sender)!=0,"You don't have pass");
-        paymentContract.makePayment(msg.sender, proPassPrice);
+        paymentContract.contractPayment(msg.sender, proPassPrice);
         passDetails[passIds[msg.sender]]=pass(msg.sender,"pro",passDetails[passIds[msg.sender]].entriesCompleted,30);
         emit Renew(passIds[msg.sender],msg.sender);
     }
