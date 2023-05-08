@@ -3,7 +3,8 @@
   "scripts": {
     "d": "npx hardhat run --network testnet scripts/deploy.js",
     "dm": "npx hardhat run --network mumbai scripts/deploy.js",
-    "dl": "npx hardhat run --network local scripts/deploy.js"
+    "dl": "npx hardhat run --network local scripts/deploy.js",
+    "set": "npx hardhat run --network mumbai scripts/setContracts.js"  
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",

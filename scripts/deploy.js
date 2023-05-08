@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   const IT = await ethers.getContractFactory("IT");
-  const ITcontract = await IT.deploy();
+  const ITContract = await IT.deploy();
   const Reward = await ethers.getContractFactory("Reward");
   const RewardContract = await Reward.deploy("0x2B402F4aec180Fb4188Df7a703d3861f0137855B");
   const Pass = await ethers.getContractFactory("Pass");
@@ -13,7 +13,7 @@ async function main() {
   const ValidateContract = await Validate.deploy("0x2B402F4aec180Fb4188Df7a703d3861f0137855B");
   const Payment = await ethers.getContractFactory("Payment");    
   const PaymentContract = await Payment.deploy();
-  fs.writeFileSync(path.resolve("contractAddresses.json"), JSON.stringify({IT:ITcontract.address,Reward:RewardContract.address,Pass:PassContract.address,Validate:ValidateContract.address,Payment:PaymentContract.address}), (err) => {});
+  fs.writeFileSync(path.resolve("contractAddresses.json"), JSON.stringify({IT:ITContract.address,Reward:RewardContract.address,Pass:PassContract.address,Validate:ValidateContract.address,Payment:PaymentContract.address}), (err) => {});
   console.log("done!")
 }
 
