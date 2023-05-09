@@ -24,10 +24,11 @@ async function main() {
   await ValidateContract.setRewardContract(contracts.Reward);
   await ValidateContract.setPassContract(contracts.Pass);
   await ValidateContract.setPaymentContract(contracts.Payment);
-  await ValidateContract.approvePaymentContract("10000000000000000000000");
   await PaymentContract.setITContract(contracts.IT);
   await PaymentContract.whitelistContract(contracts.Pass);
-  await PaymentContract.whitelistContract(contracts.Validate);
+  await PaymentContract.whitelistContract(contracts.Validate); 
+  await ValidateContract.approvePaymentContract(ethers.BigNumber.from("10000000000000000000000"));
+
   console.log("done!")
 }
 
