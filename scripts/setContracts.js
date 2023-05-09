@@ -28,7 +28,6 @@ async function main() {
   await PaymentContract.whitelistContract(contracts.Pass);
   await PaymentContract.whitelistContract(contracts.Validate); 
   await ValidateContract.approvePaymentContract(ethers.BigNumber.from("10000000000000000000000"));
-
   console.log("done!")
 }
 
