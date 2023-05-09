@@ -27,7 +27,7 @@ contract Pass is ERC721, ERC721URIStorage, Ownable, PassInterface {
 address validateContractAddress;
 Reward rewardContract;
 Payment paymentContract;
-uint proPassPrice;
+uint public proPassPrice;
 struct pass {
 address owner;
 string passType;

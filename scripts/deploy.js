@@ -8,7 +8,7 @@ async function main() {
   const Reward = await ethers.getContractFactory("Reward");
   const RewardContract = await Reward.deploy("0x2B402F4aec180Fb4188Df7a703d3861f0137855B");
   const Pass = await ethers.getContractFactory("Pass");
-  const PassContract = await Pass.deploy("10000000000000000000");
+  const PassContract = await Pass.deploy(ethers.BigNumber.from("10000000000000000000"));
   const Validate = await ethers.getContractFactory("Validate");
   const ValidateContract = await Validate.deploy("0x2B402F4aec180Fb4188Df7a703d3861f0137855B");
   const Payment = await ethers.getContractFactory("Payment");    
