@@ -4,8 +4,7 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Pass.sol";
-import "./Validate.sol";
-import "./Pass.sol";
+import "./IT.sol";
 interface RewardInterface{
   // Logged when daily rewards will be minted and distributed.
   event MintAndDistribute(uint amount);
@@ -19,7 +18,6 @@ address wereplAddress;
 address passContractAddress;
 Pass passContract;  
 address validateContractAddress;
-Validate validateContract;
 IT ITContract;
 bool lock;
 constructor(address _wereplAddress){
@@ -57,7 +55,6 @@ function setITContract(address _address) onlyOwner public{
 }
 function setValidateContract(address _address) onlyOwner public{
   validateContractAddress=_address;
-  validateContract=Validate(_address);
 }
 function rewardUser(uint _passId) onlyPassContract public{
 (address user, string memory passType , ,) = passContract.passDetails(_passId);
@@ -88,8 +85,7 @@ function claimValidatorReward() public{
   validatorReward[msg.sender]=0;
   lock=false;
 }
-function rewardValidator(address _address) onlyValidateContract public{
-  require(validateContract.getStatus(_address)==true,"Not a validator");
+function rewardValidator(address _address) onlyWerepl public{
 validatorShares[_address]=validatorShares[_address]+1;
 dailySharesClaimedByValidators=dailySharesClaimedByValidators+1;
 ValidatorsClaimedShares.push(_address);
@@ -101,7 +97,7 @@ function mintAndDistribute() onlyWerepl public{
   mintableAmountForUsers = 5*dailySharesClaimedByUsers*(10**18);
   }
     if(dailySharesClaimedByUsers>=250000){
-  mintableAmountForUsers = 250000*(10**18);
+  mintableAmountForUsers = 25000*(10**18);
   }
   if(dailySharesClaimedByValidators<25000){
   mintableAmountForValidators = 50*dailySharesClaimedByValidators*(10**18);
@@ -111,12 +107,12 @@ function mintAndDistribute() onlyWerepl public{
   }
 ITContract.reward(mintableAmountForUsers+mintableAmountForValidators);
 for(uint i=0; i<usersClaimedShares.length; i++){
-  userReward[usersClaimedShares[i]]=mintableAmountForUsers/dailySharesClaimedByUsers*userShares[usersClaimedShares[i]];
+  userReward[usersClaimedShares[i]]=userReward[usersClaimedShares[i]]+mintableAmountForUsers/dailySharesClaimedByUsers*userShares[usersClaimedShares[i]];
   userShares[usersClaimedShares[i]]=0;
 }
 delete usersClaimedShares;
 for(uint i=0; i<ValidatorsClaimedShares.length; i++){
-  validatorReward[ValidatorsClaimedShares[i]]=mintableAmountForValidators/dailySharesClaimedByValidators*validatorReward[ValidatorsClaimedShares[i]];
+  validatorReward[ValidatorsClaimedShares[i]]=validatorReward[ValidatorsClaimedShares[i]]+mintableAmountForValidators/dailySharesClaimedByValidators*validatorShares[ValidatorsClaimedShares[i]];
   validatorShares[ValidatorsClaimedShares[i]]=0;
 }
 delete ValidatorsClaimedShares;
