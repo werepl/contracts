@@ -18,16 +18,16 @@ async function main() {
   await RewardContract.setPassContract(contracts.Pass);
   await RewardContract.setValidateContract(contracts.Validate);
   await PassContract.setRewardContract(contracts.Reward);
-  /*await PassContract.setValidateContract(contracts.Validate);
+  await PassContract.setValidateContract(contracts.Validate);
   await PassContract.setPaymentContract(contracts.Payment);
-  await ValidateContract.setITContract(contracts.IT);*/
+  await ValidateContract.setITContract(contracts.IT);
   await ValidateContract.setRewardContract(contracts.Reward);
- /* await ValidateContract.setPassContract(contracts.Pass);
+  await ValidateContract.setPassContract(contracts.Pass);
   await ValidateContract.setPaymentContract(contracts.Payment);
   await PaymentContract.setITContract(contracts.IT);
   await PaymentContract.whitelistContract(contracts.Pass);
   await PaymentContract.whitelistContract(contracts.Validate); 
-  await ValidateContract.approvePaymentContract(ethers.BigNumber.from("10000000000000000000000"));*/
+  await ValidateContract.approvePaymentContract(ethers.BigNumber.from("10000000000000000000000"));
   console.log("done!")
 }
 
