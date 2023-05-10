@@ -56,7 +56,7 @@ _mint(msg.sender,_rewardAmount);
 emit Mint(_rewardAmount);
 }
 function burn(uint _burnAmount) onlyOwner public{
-_burn(msg.sender,_burnAmount*(10**18));
+_burn(msg.sender,_burnAmount);
 emit Burn(_burnAmount);
 }
 }
