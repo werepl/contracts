@@ -85,7 +85,7 @@ function claimValidatorReward() public{
   validatorReward[msg.sender]=0;
   lock=false;
 }
-function rewardValidator(address _address) onlyWerepl public{
+function rewardValidator(address _address) onlyValidateContract public{
 validatorShares[_address]=validatorShares[_address]+1;
 dailySharesClaimedByValidators=dailySharesClaimedByValidators+1;
 ValidatorsClaimedShares.push(_address);
