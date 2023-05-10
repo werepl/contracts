@@ -44,6 +44,7 @@ contract Validate is Ownable, ValidateInterface {
   enum proposalStatus {pending, approved, rejected}
   struct proposal{
     bool validated;
+    address validator;
     proposalStatus status;
   }
   mapping(string=>proposal) public proposals;
@@ -121,6 +122,7 @@ function unstakeIT(uint _amount) public{
       }
       proposal memory newProposal;
       newProposal.validated=true;
+      newProposal.validator=_validator;
       newProposal.status=proposalStatus.pending;
       proposals[_propId]=newProposal;
       emit ValidateProposal(_validator,_proposedby,_propId);
@@ -148,17 +150,17 @@ function imposePenalty(address _validator) private{
 }
 }
 }
-   function approveProposal(string memory _propId, address _validator) onlyWerepl public{
+   function approveProposal(string memory _propId) onlyWerepl public{
      require(proposals[_propId].validated==true,"This proposal has not been validated");
      require(proposals[_propId].status==proposalStatus.pending,"The proposal is already approved or rejected");
      proposals[_propId].status=proposalStatus.approved;
-     rewardContract.rewardValidator(_validator);
+    rewardContract.rewardValidator(proposals[_propId].validator);
    }
    
-   function rejectProposal(string memory _propId, address _validator) onlyWerepl public{
+   function rejectProposal(string memory _propId) onlyWerepl public{
      require(proposals[_propId].validated==true,"This proposal has not been validated");
      require(proposals[_propId].status==proposalStatus.pending,"The proposal is already approved or rejected");
      proposals[_propId].status=proposalStatus.rejected;
-     imposePenalty(_validator);
+     imposePenalty(proposals[_propId].validator);
    }
 }
