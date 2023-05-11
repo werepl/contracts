@@ -3,6 +3,7 @@
 pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Pass.sol";
 import "./IT.sol";
 interface RewardInterface{
@@ -13,13 +14,13 @@ interface RewardInterface{
   // Logged when a validator will claim their reward.
   event ClaimValidatorReward(address indexed user, uint amount);
 }
-contract Reward is Ownable, RewardInterface {
+contract Reward is ReentrancyGuard, Ownable, RewardInterface {
 address wereplAddress;
 address passContractAddress;
 Pass passContract;  
 address validateContractAddress;
 IT ITContract;
-bool lock;
+uint public lastMintAndDistribute;
 constructor(address _wereplAddress){
   wereplAddress=_wereplAddress;
 }
@@ -67,23 +68,17 @@ dailySharesClaimedByUsers=dailySharesClaimedByUsers+1;
 }
 usersClaimedShares.push(user);
 }
-function claimUserReward() public{
-  require(lock==false);
+function claimUserReward() nonReentrant public{
   require(userReward[msg.sender]>0,"You don't have any reward to claim");
-  lock=true;
   ITContract.transfer(msg.sender, userReward[msg.sender]);
   emit ClaimUserReward(msg.sender,userReward[msg.sender]);
   userReward[msg.sender]=0;
-  lock=false;
 }
-function claimValidatorReward() public{
-    require(lock==false);
-    lock=true;
+function claimValidatorReward() nonReentrant public{
   require(validatorReward[msg.sender]>0,"You don't have any reward to claim");
   ITContract.transfer(msg.sender, validatorReward[msg.sender]);
   emit ClaimValidatorReward(msg.sender,validatorReward[msg.sender]);
   validatorReward[msg.sender]=0;
-  lock=false;
 }
 function rewardValidator(address _address) onlyValidateContract public{
 validatorShares[_address]=validatorShares[_address]+1;
@@ -91,6 +86,7 @@ dailySharesClaimedByValidators=dailySharesClaimedByValidators+1;
 ValidatorsClaimedShares.push(_address);
 } 
 function mintAndDistribute() onlyWerepl public{
+    require(lastMintAndDistribute +  1 days <= block.timestamp, "In one day, only one minting and distribution is allowed.");        
     uint mintableAmountForUsers;  
     uint mintableAmountForValidators;
   if(dailySharesClaimedByUsers<250000){
@@ -118,6 +114,7 @@ for(uint i=0; i<ValidatorsClaimedShares.length; i++){
 delete ValidatorsClaimedShares;
 dailySharesClaimedByUsers=0;
 dailySharesClaimedByValidators=0;
+lastMintAndDistribute=block.timestamp;
 emit MintAndDistribute(mintableAmountForUsers+mintableAmountForValidators);
 }
 }

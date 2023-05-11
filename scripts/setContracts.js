@@ -14,6 +14,7 @@ async function main() {
   const Payment = await ethers.getContractFactory("Payment");    
   const PaymentContract = await Payment.attach(contracts.Payment);
   await ITContract.setRewardContract(contracts.Reward);
+  await ITContract.setPaymentContract(contracts.Payment);
   await RewardContract.setITContract(contracts.IT);
   await RewardContract.setPassContract(contracts.Pass);
   await RewardContract.setValidateContract(contracts.Validate);

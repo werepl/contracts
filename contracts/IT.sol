@@ -17,6 +17,7 @@ uint constant initialSupply = 1000000000;
 uint constant inflationRate = 3;
 uint totalSupplyAtStartOfYear = 0;
 address[] public rewardContracts;
+address[] public paymentContracts;
     constructor() ERC20("IT", "IT") {
         totalSupplyAtStartOfYear=initialSupply*(10**18);
         _mint(msg.sender, initialSupply*(10**18));
@@ -29,6 +30,16 @@ if(msg.sender==rewardContracts[i]){
 }
 }
 require(isRewardContract==true,"Unauthorised");
+_;
+}
+modifier onlyPaymentContracts{
+bool isPaymentContract;
+for(uint i=0; i<paymentContracts.length; i++){
+if(msg.sender==paymentContracts[i]){
+  isPaymentContract=true;
+}
+}
+require(isPaymentContract==true,"Unauthorised");
 _;
 }
 mapping(uint256 => uint256) private dailyMintedAmount;
@@ -47,15 +58,22 @@ totalSupplyAtStartOfYear = totalSupply();
 function setRewardContract(address _address) onlyOwner public{
 rewardContracts.push(_address);
 }
+function setPaymentContract(address _address) onlyOwner public{
+paymentContracts.push(_address);
+}
 function removeRewardContract(uint _index) onlyOwner public{
 delete rewardContracts[_index];
+}
+
+function removePaymentContract(uint _index) onlyOwner public{
+delete paymentContracts[_index];
 }
 
 function reward(uint _rewardAmount) onlyRewardContracts inflation(_rewardAmount) public{
 _mint(msg.sender,_rewardAmount);
 emit Mint(_rewardAmount);
 }
-function burn(uint _burnAmount) onlyOwner public{
+function burn(uint _burnAmount) onlyPaymentContracts public{
 _burn(msg.sender,_burnAmount);
 emit Burn(_burnAmount);
 }
