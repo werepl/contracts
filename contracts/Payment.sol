@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IT.sol";
 interface PaymentInterface{
   // Logged when a user makes a payment.
-  event MakePayment(address indexed user, string indexed wereplTxid, uint amount);
+  event MakePayment(address indexed user, string wereplTxid, uint amount);
 }
 contract Payment is Ownable, PaymentInterface{
   IT ITContract;
