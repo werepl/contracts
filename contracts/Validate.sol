@@ -76,7 +76,6 @@ function setITContract(address _address) onlyOwner public{
 }
 function verifyValidator(address _validator) onlyWerepl public{
   require(validators[_validator].status==validatorStatus.unlisted,"Already listed");
-  require(validators[_validator].ITStaked==0,"Already listed");
   validator memory newValidator;
   newValidator.status=validatorStatus.verified;
   validators[_validator]=newValidator;
