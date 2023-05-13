@@ -33,7 +33,7 @@ contract Validate is ReentrancyGuard, Ownable, ValidateInterface {
   Reward rewardContract;
   address paymentContractAddress;
   Payment paymentContract;
-  enum validatorStatus {unlisted,listed,active,delisted}
+  enum validatorStatus {unlisted,verified,listed,delisted}
   struct validator{
     uint ITStaked;
     uint penalties;
@@ -74,17 +74,16 @@ function setPassContract(address _address) onlyWerepl public{
 function setITContract(address _address) onlyOwner public{
   ITContract=IERC20(_address);
 }
-function listValidator(address _validator) onlyWerepl public{
+function verifyValidator(address _validator) onlyWerepl public{
   require(validators[_validator].status==validatorStatus.unlisted,"Already listed");
   require(validators[_validator].ITStaked==0,"Already listed");
   validator memory newValidator;
-  newValidator.status=validatorStatus.listed;
+  newValidator.status=validatorStatus.verified;
   validators[_validator]=newValidator;
-  emit ListValidator(_validator);
 }
 function delistValidator(address _validator) onlyWerepl public{
-  require(validators[_validator].status==validatorStatus.listed,"Not a validator");
-  if(validators[_validator].ITStaked>0){
+  require(validators[_validator].status==validatorStatus.verified||validators[_validator].status==validatorStatus.listed,"Not a validator");
+  if(validators[_validator].status==validatorStatus.listed){
   paymentContract.contractPayment(address(this),500*(10**18));
   validators[_validator].ITStaked=validators[_validator].ITStaked-500*(10**18);
   }
@@ -92,19 +91,20 @@ function delistValidator(address _validator) onlyWerepl public{
   emit DelistValidator(_validator);
 }
 function stakeIT(uint _amount) public{
-    require(validators[msg.sender].status==validatorStatus.listed,"Not a validator");
+    require(validators[msg.sender].status==validatorStatus.verified||validators[msg.sender].status==validatorStatus.listed,"Not a validator");
     require(validators[msg.sender].ITStaked+_amount>=10000*(10**18),"Your minimum staking should be 10000 IT");
   ITContract.transferFrom(msg.sender, address(this), _amount);
   validators[msg.sender].ITStaked+=_amount;
-  if(validators[msg.sender].status==validatorStatus.listed){
-    validators[msg.sender].status=validatorStatus.active;
+  if(validators[msg.sender].status==validatorStatus.verified){
+    validators[msg.sender].status=validatorStatus.listed;
+      emit ListValidator(msg.sender);
   }
   emit StakeIT(msg.sender,_amount);
 }
 
 function unstakeIT(uint _amount) nonReentrant public{
     require(validators[msg.sender].ITStaked>=_amount,"insufficient funds");
-    if(validators[msg.sender].status==validatorStatus.active){
+    if(validators[msg.sender].status==validatorStatus.listed){
     require(validators[msg.sender].ITStaked-_amount>=10000*(10**18),"Your minimum staking should be 10000 IT");
     }
   ITContract.transfer(msg.sender,_amount);
@@ -112,7 +112,7 @@ function unstakeIT(uint _amount) nonReentrant public{
   emit UnstakeIT(msg.sender,_amount);
 }
    function validateProposal(string memory _propId, string memory _domain, address _proposedby, address _validator) onlyWerepl public{
-      require(validators[_validator].status==validatorStatus.active,"Not a validator");
+      require(validators[_validator].status==validatorStatus.listed,"Not a validator");
       require(proposals[_propId].validated==false,"The proposal has already been validated");
       uint passId = passContract.passIds(_proposedby);
       (, , ,uint entriesRemaining) = passContract.passDetails(passId);
