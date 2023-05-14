@@ -6,8 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IT.sol";
 interface PaymentInterface{
-  // Logged when a user makes a payment.
-  event MakePayment(address indexed user, string wereplTxid, uint amount);
+  // Logged when a user makes a payment using contracts.
+  event ContractPayment(address indexed user, uint amount);
+  // Logged when a user makes a payment without contracts.
+  event DirectPayment(address indexed user, string wereplTxid, uint amount);
 }
 contract Payment is Ownable, PaymentInterface{
   IT ITContract;
@@ -38,12 +40,12 @@ delete whitelistedContracts[_index];
 function contractPayment(address _from, uint _amount) onlyWhitelistedContracts public{
   ITContract.transferFrom(_from, address(this), _amount);
   burnableIT+=(_amount*20)/100;
-  emit MakePayment(_from,"0",_amount);
+  emit ContractPayment(_from,_amount);
 }
 function directPayment(string memory _wereplTxid ,uint _amount) public{
   ITContract.transferFrom(msg.sender, address(this), _amount);
   burnableIT+=(_amount*20)/100;
-  emit MakePayment(msg.sender,_wereplTxid,_amount);
+  emit DirectPayment(msg.sender,_wereplTxid,_amount);
 }
   function withdrawIT() onlyOwner public{
          require(ITContract.balanceOf(address(this))-burnableIT>0,"insufficient funds");
