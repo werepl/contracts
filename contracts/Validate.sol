@@ -113,10 +113,12 @@ function unstakeIT(uint _amount) nonReentrant public{
    function validateProposal(string memory _propId, string memory _domain, address _proposedby, address _validator) onlyWerepl public{
       require(validators[_validator].status==validatorStatus.listed,"Not a validator");
       require(proposals[_propId].validated==false,"The proposal has already been validated");
+      if(_proposedby!=address(0)){
       uint passId = passContract.passIds(_proposedby);
       (, , ,uint entriesRemaining) = passContract.passDetails(passId);
       if(passId!=0&&entriesRemaining>0){
       passContract.entry(passId,_propId,_domain,_validator);
+      }
       }
       proposal memory newProposal;
       newProposal.validated=true;
