@@ -122,7 +122,7 @@ function setProPassPrice(uint _price) onlyOwner public{
     {
       require(balanceOf(msg.sender)!=0,"You don't have pass");
         paymentContract.contractPayment(msg.sender, proPassPrice);
-        passDetails[passIds[msg.sender]]=pass(msg.sender,"pro",passDetails[passIds[msg.sender]].entriesCompleted,30);
+        passDetails[passIds[msg.sender]]=pass(msg.sender,"pro",passDetails[passIds[msg.sender]].entriesCompleted,passDetails[passIds[msg.sender]].entriesRemaining+30);
         emit Renew(passIds[msg.sender],msg.sender);
     }
    function entry(uint _passId, string memory _propId ,string memory _domain, address _validator) onlyValidateContract public{
