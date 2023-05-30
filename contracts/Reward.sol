@@ -71,14 +71,14 @@ usersClaimedShares.push(user);
 function claimUserReward() nonReentrant public{
   require(userReward[msg.sender]>0,"You don't have any reward to claim");
   ITContract.transfer(msg.sender, userReward[msg.sender]);
-  emit ClaimUserReward(msg.sender,userReward[msg.sender]);
   userReward[msg.sender]=0;
+  emit ClaimUserReward(msg.sender,userReward[msg.sender]);
 }
 function claimValidatorReward() nonReentrant public{
   require(validatorReward[msg.sender]>0,"You don't have any reward to claim");
   ITContract.transfer(msg.sender, validatorReward[msg.sender]);
-  emit ClaimValidatorReward(msg.sender,validatorReward[msg.sender]);
   validatorReward[msg.sender]=0;
+  emit ClaimValidatorReward(msg.sender,validatorReward[msg.sender]);
 }
 function rewardValidator(address _address) onlyValidateContract public{
 validatorShares[_address]=validatorShares[_address]+1;
