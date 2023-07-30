@@ -13,7 +13,7 @@ import "./Payment.sol";
 
 interface PassInterface{
   // Logged when the price of pro passes change.
-  event ProPassPriceChange(uint oldPrice, uint newPrice);
+  event PassPriceChange(uint oldPrice, uint newPrice);
   // Logged when a user mints an pass.
   event Mint(uint indexed passId,address indexed owner);
   // Logged when the user renews their pass.
@@ -88,7 +88,7 @@ function setPaymentContract(address _address) onlyOwner public{
 }
 function setPassPrice(uint _price) onlyOwner public{
   passPrice=_price;
-  emit ProPassPriceChange(passPrice,_price);
+  emit PassPriceChange(passPrice,_price);
 }
     function mint() external
     {
