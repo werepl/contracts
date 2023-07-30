@@ -59,7 +59,7 @@ function setValidateContract(address _address) onlyOwner public{
 }
 function rewardUser(uint _passId) onlyPassContract public{
 (address user, , uint expiry) = passContract.passDetails(_passId);
-if(expiry<block.timestamp){
+if(block.timestamp<expiry){
 userShares[user]=userShares[user]+1;
 dailySharesClaimedByUsers=dailySharesClaimedByUsers+1;
 usersClaimedShares.push(user);

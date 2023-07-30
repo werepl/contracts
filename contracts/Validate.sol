@@ -116,7 +116,7 @@ function unstakeIT(uint _amount) nonReentrant public{
       if(_proposedby!=address(0)){
       uint passId = passContract.passIds(_proposedby);
       (, , uint expiry) = passContract.passDetails(passId);
-      if(passId!=0&&expiry<block.timestamp){
+      if(passId!=0&&block.timestamp<expiry){
       passContract.entry(passId,_propId,_domain,_validator);
       }
       }
