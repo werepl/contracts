@@ -58,15 +58,12 @@ function setValidateContract(address _address) onlyOwner public{
   validateContractAddress=_address;
 }
 function rewardUser(uint _passId) onlyPassContract public{
-(address user, string memory passType , ,) = passContract.passDetails(_passId);
-if (keccak256(abi.encodePacked(passType)) == keccak256(abi.encodePacked('pro'))) {
-userShares[user]=userShares[user]+10;
-dailySharesClaimedByUsers=dailySharesClaimedByUsers+10;
-}else{
+(address user, , uint expiry) = passContract.passDetails(_passId);
+if(expiry<block.timestamp){
 userShares[user]=userShares[user]+1;
 dailySharesClaimedByUsers=dailySharesClaimedByUsers+1;
-}
 usersClaimedShares.push(user);
+}
 }
 function claimUserReward() nonReentrant public{
   require(userReward[msg.sender]>0,"You don't have any reward to claim");

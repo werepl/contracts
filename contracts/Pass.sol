@@ -15,7 +15,7 @@ interface PassInterface{
   // Logged when the price of pro passes change.
   event ProPassPriceChange(uint oldPrice, uint newPrice);
   // Logged when a user mints an pass.
-  event Mint(uint indexed passId,address indexed owner, string passType);
+  event Mint(uint indexed passId,address indexed owner);
   // Logged when the user renews their pass.
   event Renew(uint indexed passId,address indexed owner);
   // Logged when a new entry is added to the pass.
@@ -27,12 +27,11 @@ contract Pass is ERC721, ERC721URIStorage, Ownable, PassInterface {
 address validateContractAddress;
 Reward rewardContract;
 Payment paymentContract;
-uint public proPassPrice;
+uint public passPrice;
 struct pass {
 address owner;
-string passType;
-uint entriesCompleted;
-uint entriesRemaining;
+uint entries;
+uint expiry;
 }
 struct passEntry{
 string propId;
@@ -44,10 +43,10 @@ uint    timestamp;
 mapping(address=>uint) public passIds;
 mapping(uint=>pass) public passDetails;
 mapping(uint=>passEntry[]) private passEntries;
-    constructor(uint _proPassPrice)
+    constructor(uint _passPrice)
      ERC721("WereplPass", "Pass") {
               _tokenIds.increment();
-              proPassPrice=_proPassPrice;
+              passPrice=_passPrice;
 
     }
 function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
@@ -87,62 +86,40 @@ function setRewardContract(address _address) onlyOwner public{
 function setPaymentContract(address _address) onlyOwner public{
   paymentContract=Payment(_address);
 }
-function setProPassPrice(uint _price) onlyOwner public{
-  emit ProPassPriceChange(proPassPrice,_price);
-  proPassPrice=_price;
+function setPassPrice(uint _price) onlyOwner public{
+  passPrice=_price;
+  emit ProPassPriceChange(passPrice,_price);
 }
-    function mint(string memory _type) external returns (uint256)
+    function mint() external
     {
       require(passIds[msg.sender]==0,"Already minted");
-  if (keccak256(abi.encodePacked(_type)) != keccak256(abi.encodePacked('basic'))&&keccak256(abi.encodePacked(_type)) != keccak256(abi.encodePacked('pro'))) {
-  revert();
-  }
    uint tokenId = _tokenIds.current();
-  if (keccak256(abi.encodePacked(_type)) == keccak256(abi.encodePacked('basic'))) {
-        passDetails[tokenId]=pass(msg.sender,"basic",0,5);
-           _mint(msg.sender,tokenId);
-           string memory URI = "https://ipfs.io/ipns/k51qzi5uqu5dl60tew1ueo64yp9pzrhgizhaqzipy68c11kqh1ymknjd9pb3ws";
-        _setTokenURI(tokenId, URI);
-        _tokenIds.increment();
-        emit Mint(tokenId,msg.sender,"basic");
-        }else{
-        paymentContract.contractPayment(msg.sender, proPassPrice);
+        paymentContract.contractPayment(msg.sender, passPrice);
          _mint(msg.sender,tokenId);
         _setTokenURI(tokenId, Strings.toString(tokenId));
         _tokenIds.increment();
-         passDetails[tokenId]=pass(msg.sender,"pro",0,30);
-         emit Mint(tokenId,msg.sender,"pro");
-        }
+         passDetails[tokenId]=pass(msg.sender,0,block.timestamp+365 days);
         passIds[msg.sender]=tokenId;
-        return tokenId;
+        emit Mint(tokenId,msg.sender);
     }
 
     function renew()
        external
     {
       require(balanceOf(msg.sender)!=0,"You don't have pass");
-        paymentContract.contractPayment(msg.sender, proPassPrice);
-          if (keccak256(abi.encodePacked(passDetails[passIds[msg.sender]].passType)) == keccak256(abi.encodePacked('pro'))) {
-        passDetails[passIds[msg.sender]]=pass(msg.sender,"pro",passDetails[passIds[msg.sender]].entriesCompleted,passDetails[passIds[msg.sender]].entriesRemaining+30);
-          }else{
-           passDetails[passIds[msg.sender]]=pass(msg.sender,"pro",passDetails[passIds[msg.sender]].entriesCompleted,passDetails[passIds[msg.sender]].entriesRemaining=30);
-          }
+        paymentContract.contractPayment(msg.sender, passPrice);
+        passDetails[passIds[msg.sender]]=pass(msg.sender,passDetails[passIds[msg.sender]].entries,block.timestamp+365 days);
         emit Renew(passIds[msg.sender],msg.sender);
     }
    function entry(uint _passId, string memory _propId ,string memory _domain, address _validator) onlyValidateContract public{
-   passDetails[_passId].entriesCompleted=passDetails[_passId].entriesCompleted+1;
-   passDetails[_passId].entriesRemaining=passDetails[_passId].entriesRemaining-1;
+   passDetails[_passId].entries=passDetails[_passId].entries+1;
    passEntry memory newEntry;
    newEntry.propId=_propId;
    newEntry.domain=_domain;
    newEntry.validator=_validator;
    newEntry.timestamp=block.timestamp;
-passEntries[_passId].push(newEntry);
-  if (keccak256(abi.encodePacked(passDetails[_passId].passType)) == keccak256(abi.encodePacked('pro'))) {
-    rewardContract.rewardUser(_passId);
-  }else{
-        rewardContract.rewardUser(_passId);  
-  }
-  emit NewEntry(_passId,_propId,_validator);
+   passEntries[_passId].push(newEntry);
+   rewardContract.rewardUser(_passId);
+   emit NewEntry(_passId,_propId,_validator);
    }
 }

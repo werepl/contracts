@@ -115,8 +115,8 @@ function unstakeIT(uint _amount) nonReentrant public{
       require(proposals[_propId].validated==false,"The proposal has already been validated");
       if(_proposedby!=address(0)){
       uint passId = passContract.passIds(_proposedby);
-      (, , ,uint entriesRemaining) = passContract.passDetails(passId);
-      if(passId!=0&&entriesRemaining>0){
+      (, , uint expiry) = passContract.passDetails(passId);
+      if(passId!=0&&expiry<block.timestamp){
       passContract.entry(passId,_propId,_domain,_validator);
       }
       }
