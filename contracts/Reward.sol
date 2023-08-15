@@ -86,10 +86,10 @@ function mintAndDistribute() onlyWerepl public{
     require(lastMintAndDistribute +  1 days <= block.timestamp, "In one day, only one minting and distribution is allowed.");        
     uint mintableAmountForUsers;  
     uint mintableAmountForValidators;
-  if(dailySharesClaimedByUsers<250000){
-  mintableAmountForUsers = 5*dailySharesClaimedByUsers*(10**18);
+  if(dailySharesClaimedByUsers<25000){
+  mintableAmountForUsers = 50*dailySharesClaimedByUsers*(10**18);
   }
-    if(dailySharesClaimedByUsers>=250000){
+    if(dailySharesClaimedByUsers>=25000){
   mintableAmountForUsers = 25000*(10**18);
   }
   if(dailySharesClaimedByValidators<25000){
