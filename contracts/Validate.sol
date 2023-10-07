@@ -125,6 +125,7 @@ function unstakeIT(uint _amount) nonReentrant public{
       newProposal.validator=_validator;
       newProposal.status=proposalStatus.pending;
       proposals[_propId]=newProposal;
+      paymentContract.contractPayment(address(this),1*(10**18));
       emit ValidateProposal(_validator,_proposedby,_propId);
    }
 function imposePenalty(address _validator) private{
