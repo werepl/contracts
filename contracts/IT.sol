@@ -43,9 +43,9 @@ require(isPaymentContract==true,"Unauthorised");
 _;
 }
 mapping(uint256 => uint256) private dailyMintedAmount;
-modifier inflation(uint256 _rewardAmount) {
+modifier inflation(uint256 _rewardAmount, uint256 _beforeTGEReward) {
 uint256 currentDay = block.timestamp / 86400;
-uint256 maxMintableAmount = totalSupplyAtStartOfYear * inflationRate*10**16 / 365 / (10**18);
+uint256 maxMintableAmount = _beforeTGEReward+(totalSupplyAtStartOfYear * inflationRate*10**16 / 365 / (10**18));
 require(_rewardAmount > 0, "Amount should be more than 0");
 require(_rewardAmount <= maxMintableAmount, "Requested amount exceeds max mintable amount");
 require(dailyMintedAmount[currentDay] + _rewardAmount <= maxMintableAmount, "Daily mintable amount exceeded");
@@ -69,9 +69,9 @@ function removePaymentContract(uint _index) onlyOwner public{
 delete paymentContracts[_index];
 }
 
-function reward(uint _rewardAmount) onlyRewardContracts inflation(_rewardAmount) public{
-_mint(msg.sender,_rewardAmount);
-emit Mint(_rewardAmount);
+function reward(address _address, uint _rewardAmount, uint _beforeTGEReward) onlyRewardContracts inflation(_rewardAmount, _beforeTGEReward) public{
+_mint(_address,_rewardAmount+_beforeTGEReward);
+emit Mint(_rewardAmount+_beforeTGEReward);
 }
 function burn(uint _burnAmount) onlyPaymentContracts public{
 _burn(msg.sender,_burnAmount);

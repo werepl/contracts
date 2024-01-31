@@ -42,14 +42,21 @@ function contractPayment(address _from, uint _amount) onlyWhitelistedContracts p
   burnableIT+=(_amount*20)/100;
   emit ContractPayment(_from,_amount);
 }
-function directPayment(string memory _wereplTxid ,uint _amount) public{
+function directPayment(string memory _wereplTxid ,uint _amount, bool _IT) payable public{
+  if(_IT){
   ITContract.transferFrom(msg.sender, address(this), _amount);
   burnableIT+=(_amount*20)/100;
-  emit DirectPayment(msg.sender,_wereplTxid,_amount);
+  }
+  emit DirectPayment(msg.sender,_wereplTxid,_IT?_amount:msg.value);
 }
-  function withdrawIT() onlyOwner public{
-         require(ITContract.balanceOf(address(this))-burnableIT>0,"insufficient funds");
+  function withdraw()  onlyOwner public{
+         if(ITContract.balanceOf(address(this))-burnableIT>0){
          ITContract.transfer(msg.sender, ITContract.balanceOf(address(this))-burnableIT);
+         }
+         if(address(this).balance>0){
+         (bool success,) = msg.sender.call{value: address(this).balance}("");
+         require(success);
+         }
   }
     function burnIT() onlyOwner public{
       require(lastBurn +  90 days <= block.timestamp, "In one quarter, only one burn is allowed.");        

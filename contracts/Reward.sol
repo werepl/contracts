@@ -7,45 +7,46 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Pass.sol";
 import "./IT.sol";
 interface RewardInterface{
-  // Logged when daily rewards will be minted and distributed.
-  event MintAndDistribute(uint amount);
   // Logged when a user will claim their reward.
-  event ClaimUserReward(address indexed user, uint amount);
-  // Logged when a validator will claim their reward.
-  event ClaimValidatorReward(address indexed user, uint amount);
+  event ClaimReward(address indexed user, uint amount);
 }
+
 contract Reward is ReentrancyGuard, Ownable, RewardInterface {
-address wereplAddress;
 address passContractAddress;
 Pass passContract;  
 address validateContractAddress;
-IT ITContract;
-uint public lastMintAndDistribute;
-constructor(address _wereplAddress){
-  wereplAddress=_wereplAddress;
+IT public ITContract;
+struct rewardStruct{
+  uint shares;
+  bool validatorReward;
+  uint dailyRewardPool;
+  uint day;
+  bool TGE;
+  uint timestamp;
 }
-mapping(address=>uint) public userReward;
-mapping(address=>uint) public validatorReward;
-mapping(address=>uint) public userShares;
-mapping(address=>uint) public validatorShares;
-address[] private usersClaimedShares;
-address[] private ValidatorsClaimedShares;
-uint public dailySharesClaimedByUsers;
-uint public dailySharesClaimedByValidators;
-modifier onlyPassContract{
-  require(msg.sender==passContractAddress,"Unauthorised");
+mapping(address=>rewardStruct[]) private userShares;
+address[] unclaimedAddresses;
+struct pool{
+  uint dailyRewardPool;
+  uint dailyRewardPoolToBeUpdated;
+  uint updatedAt;
+}
+pool dailyRewardPool;
+mapping(uint=>uint) public dailySharesClaimedByUsers;
+mapping(uint=>uint) public dailySharesClaimedByValidators;
+  constructor(uint _dailyRewardPool) {
+      dailyRewardPool.dailyRewardPool=_dailyRewardPool;
+    }
+modifier onlyPassOrValidateContract{
+  require(msg.sender==passContractAddress||msg.sender==validateContractAddress,"Unauthorised");
   _;
-}
-modifier onlyWerepl{
-  require(msg.sender==wereplAddress,"Unauthorised");
-  _;
-}
-function setWerepl(address _address) onlyWerepl public{
-  wereplAddress=_address;
 }
 modifier onlyValidateContract{
   require(msg.sender==validateContractAddress,"Unauthorised");
   _;
+}
+function getUserShares(address _address) public view returns(rewardStruct[] memory){
+return userShares[_address];
 }
 function setPassContract(address _address) onlyOwner public{
   passContractAddress=_address;
@@ -57,61 +58,124 @@ function setITContract(address _address) onlyOwner public{
 function setValidateContract(address _address) onlyOwner public{
   validateContractAddress=_address;
 }
-function rewardUser(uint _passId) onlyPassContract public{
+
+function setDailyRewardPool(uint _amount) onlyOwner public{
+  pool memory newPool;
+  newPool.dailyRewardPool=dailyRewardPool.dailyRewardPool;
+  newPool.dailyRewardPoolToBeUpdated=_amount;
+  newPool.updatedAt=block.timestamp;
+  dailyRewardPool=newPool;
+}
+function reward(uint _passId, address _validator) onlyPassOrValidateContract public{
+ uint currentDay=block.timestamp/1 days;
+  rewardStruct memory newReward;
+  newReward.shares=1;
+  newReward.day=currentDay;
+  newReward.timestamp=block.timestamp;
+  if(ITContract!=IT(address(0))){
+    newReward.TGE=true;
+  }
+  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp/1 days>=(dailyRewardPool.updatedAt/1 days)+1){
+    newReward.dailyRewardPool=dailyRewardPool.dailyRewardPoolToBeUpdated;
+    dailyRewardPool.dailyRewardPool=dailyRewardPool.dailyRewardPoolToBeUpdated;
+    dailyRewardPool.dailyRewardPoolToBeUpdated=0;
+  }else{
+    newReward.dailyRewardPool=dailyRewardPool.dailyRewardPool;
+  }
+if(_validator!=address(0)){
+newReward.validatorReward=true;
+dailySharesClaimedByValidators[currentDay]=dailySharesClaimedByValidators[currentDay]+1;
+unclaimedAddresses.push(_validator);
+}else{
 (address user, , uint expiry) = passContract.passDetails(_passId);
 if(block.timestamp<expiry){
-userShares[user]=userShares[user]+1;
-dailySharesClaimedByUsers=dailySharesClaimedByUsers+1;
-usersClaimedShares.push(user);
+userShares[user].push(newReward);
+dailySharesClaimedByUsers[currentDay]=dailySharesClaimedByUsers[currentDay]+1;
+unclaimedAddresses.push(user);
 }
 }
-function claimUserReward() nonReentrant public{
-  require(userReward[msg.sender]>0,"You don't have any reward to claim");
-  ITContract.transfer(msg.sender, userReward[msg.sender]);
-  userReward[msg.sender]=0;
-  emit ClaimUserReward(msg.sender,userReward[msg.sender]);
 }
-function claimValidatorReward() nonReentrant public{
-  require(validatorReward[msg.sender]>0,"You don't have any reward to claim");
-  ITContract.transfer(msg.sender, validatorReward[msg.sender]);
-  validatorReward[msg.sender]=0;
-  emit ClaimValidatorReward(msg.sender,validatorReward[msg.sender]);
-}
-function rewardValidator(address _address) onlyValidateContract public{
-validatorShares[_address]=validatorShares[_address]+1;
-dailySharesClaimedByValidators=dailySharesClaimedByValidators+1;
-ValidatorsClaimedShares.push(_address);
-} 
-function mintAndDistribute() onlyWerepl public{
-    require(lastMintAndDistribute +  1 days <= block.timestamp, "In one day, only one minting and distribution is allowed.");        
-    uint mintableAmountForUsers;  
-    uint mintableAmountForValidators;
-  if(dailySharesClaimedByUsers<25000){
-  mintableAmountForUsers = 50*dailySharesClaimedByUsers*(10**18);
+function calculateUserRewards() public view returns (uint) {
+ uint claimableReward;
+    rewardStruct[] memory rewards = userShares[msg.sender];
+   for(uint i=0; i<rewards.length;i++){
+    uint day=userShares[msg.sender][i].day;
+    if(block.timestamp/ 1 days>day){
+    uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
+ if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
+  claimableReward = claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
   }
-    if(dailySharesClaimedByUsers>=25000){
-  mintableAmountForUsers = 25000*(10**18);
+    if(dailySharesClaimed*(10**18)>=rewards[i].dailyRewardPool) {
+      claimableReward=claimableReward+(rewards[i].shares * (rewards[i].dailyRewardPool/2)) / dailySharesClaimed;
   }
-  if(dailySharesClaimedByValidators<25000){
-  mintableAmountForValidators = 50*dailySharesClaimedByValidators*(10**18);
+    }
   }
-      if(dailySharesClaimedByValidators>=25000){
-  mintableAmountForValidators = 25000*(10**18);
-  }
-ITContract.reward(mintableAmountForUsers+mintableAmountForValidators);
-for(uint i=0; i<usersClaimedShares.length; i++){
-  userReward[usersClaimedShares[i]]=userReward[usersClaimedShares[i]]+mintableAmountForUsers/dailySharesClaimedByUsers*userShares[usersClaimedShares[i]];
-  userShares[usersClaimedShares[i]]=0;
+  return claimableReward;
 }
-delete usersClaimedShares;
-for(uint i=0; i<ValidatorsClaimedShares.length; i++){
-  validatorReward[ValidatorsClaimedShares[i]]=validatorReward[ValidatorsClaimedShares[i]]+mintableAmountForValidators/dailySharesClaimedByValidators*validatorShares[ValidatorsClaimedShares[i]];
-  validatorShares[ValidatorsClaimedShares[i]]=0;
+function calculateRewards() public view returns (uint) {
+   uint claimableReward;
+   for(uint a=0;a<unclaimedAddresses.length;a++){
+    rewardStruct[] memory rewards = userShares[unclaimedAddresses[a]];
+   for(uint i=0; i<rewards.length;i++){
+    uint day=userShares[msg.sender][i].day;
+    if(block.timestamp/ 1 days>day){
+    uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
+ if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
+  claimableReward = claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
+  }
+    if(dailySharesClaimed*(10**18)>=rewards[i].dailyRewardPool) {
+      claimableReward=claimableReward+(rewards[i].shares * (rewards[i].dailyRewardPool/2)) / dailySharesClaimed;
+  }
+    }
+    }
+  }
+  return claimableReward;
 }
-delete ValidatorsClaimedShares;
-dailySharesClaimedByUsers=0;
-dailySharesClaimedByValidators=0;
-lastMintAndDistribute=block.timestamp;
-emit MintAndDistribute(mintableAmountForUsers+mintableAmountForValidators);
+function calculateDailyRewardPool() public view returns (uint) {
+  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp/1 days>=(dailyRewardPool.updatedAt/1 days)+1){
+    return dailyRewardPool.dailyRewardPoolToBeUpdated;
+  }else{
+    return dailyRewardPool.dailyRewardPool;
+  }
+}
+function claimReward() nonReentrant public{
+  require(ITContract!=IT(address(0)),"The TGE (Token Generation Event) has not happened yet.");
+  uint claimableReward;
+  uint beforeTGEReward;
+  rewardStruct[] memory rewards = userShares[msg.sender];
+   for(uint i=0; i<rewards.length;i++){
+    uint day=userShares[msg.sender][i].day;
+    if(block.timestamp/ 1 days>day){
+    uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
+ if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
+  if(rewards[i].TGE){
+  claimableReward=claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*2)/1000;
+  }else{
+    beforeTGEReward = beforeTGEReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*2)/1000;
+  }
+  }
+    if(dailySharesClaimed*(10**18)>=rewards[i].dailyRewardPool) {
+        if(rewards[i].TGE){
+      claimableReward=claimableReward+(rewards[i].shares * (rewards[i].dailyRewardPool/2)) / dailySharesClaimed;
+        }else{
+        beforeTGEReward=claimableReward+(rewards[i].shares * (rewards[i].dailyRewardPool/2)) / dailySharesClaimed;
+        }
+  }
+    }
+  }
+  ITContract.reward(msg.sender,claimableReward,beforeTGEReward);
+  delete userShares[msg.sender];
+  uint index;
+  for(uint a=0;a<unclaimedAddresses.length;a++){
+    if(unclaimedAddresses[a]==msg.sender){
+      index=a;
+      break;
+    }
+  }      
+  for (uint i = index; i < unclaimedAddresses.length - 1; i++){
+    unclaimedAddresses[i] = unclaimedAddresses[i+1];
+  }
+  unclaimedAddresses.pop();
+  emit ClaimReward(msg.sender,claimableReward+beforeTGEReward);
 }
 }
