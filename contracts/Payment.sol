@@ -9,7 +9,7 @@ interface PaymentInterface{
   // Logged when a user makes a payment using contracts.
   event ContractPayment(address indexed user, uint amount);
   // Logged when a user makes a payment without contracts.
-  event DirectPayment(address indexed user, string wereplTxid, uint amount);
+  event DirectPayment(address indexed user, string wereplTxid, uint ITAmount, uint BNBAmount);
 }
 contract Payment is Ownable, PaymentInterface{
   IT ITContract;
@@ -42,12 +42,12 @@ function contractPayment(address _from, uint _amount) onlyWhitelistedContracts p
   burnableIT+=(_amount*20)/100;
   emit ContractPayment(_from,_amount);
 }
-function directPayment(string memory _wereplTxid ,uint _amount, bool _IT) payable public{
-  if(_IT){
-  ITContract.transferFrom(msg.sender, address(this), _amount);
-  burnableIT+=(_amount*20)/100;
+function directPayment(string memory _wereplTxid ,uint _ITamount) payable public{
+  if(_ITamount>0){
+  ITContract.transferFrom(msg.sender, address(this), _ITamount);
+  burnableIT+=(_ITamount*20)/100;
   }
-  emit DirectPayment(msg.sender,_wereplTxid,_IT?_amount:msg.value);
+  emit DirectPayment(msg.sender,_wereplTxid,_ITamount,msg.value);
 }
   function withdraw()  onlyOwner public{
          if(ITContract.balanceOf(address(this))-burnableIT>0){
