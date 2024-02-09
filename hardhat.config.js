@@ -1,8 +1,11 @@
 require("@nomicfoundation/hardhat-toolbox");
 
-const { testmnemonic,mnemonic } = require('./secrets.json');
+const { testmnemonic,mnemonic, etherscan } = require('./secrets.json');
 
 module.exports = {
+  etherscan: {
+    apiKey: etherscan
+},
   defaultNetwork: "mainnet",
   networks: {
     local: {
