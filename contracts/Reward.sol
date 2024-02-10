@@ -95,9 +95,9 @@ unclaimedAddresses.push(user);
 }
 }
 }
-function calculateUserRewards() public view returns (uint) {
+function calculateUserRewards(address _address) public view returns (uint) {
  uint claimableReward;
-    rewardStruct[] memory rewards = userShares[msg.sender];
+    rewardStruct[] memory rewards = userShares[_address];
    for(uint i=0; i<rewards.length;i++){
     uint day=userShares[msg.sender][i].day;
     if(block.timestamp/ 1 days>day){
