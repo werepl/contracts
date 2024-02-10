@@ -33,7 +33,7 @@ contract Validate is ReentrancyGuard, Ownable, ValidateInterface {
   Reward rewardContract;
   address paymentContractAddress;
   Payment paymentContract;
-  uint stakingRequired;
+  uint public stakingRequired;
   enum validatorStatus {unlisted,listed,delisted}
   struct validator{
     uint ITStaked;
