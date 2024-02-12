@@ -163,6 +163,7 @@ function claimReward() nonReentrant public{
   }
     }
   }
+  require((claimableReward+beforeTGEReward)>0,"You do not have any IT rewards to claim.");
   ITContract.reward(msg.sender,claimableReward,beforeTGEReward);
   delete userShares[msg.sender];
   uint index;
