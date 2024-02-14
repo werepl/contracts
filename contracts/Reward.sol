@@ -20,8 +20,8 @@ struct rewardStruct{
   uint shares;
   bool validatorReward;
   uint dailyRewardPool;
-  uint day;
   bool TGE;
+  uint day;
   uint timestamp;
 }
 mapping(address=>rewardStruct[]) private userShares;
@@ -75,7 +75,7 @@ function reward(uint _passId, address _validator) onlyPassOrValidateContract pub
   if(ITContract!=IT(address(0))){
     newReward.TGE=true;
   }
-  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp/1 days>=(dailyRewardPool.updatedAt/1 days)+1){
+  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp>=(dailyRewardPool.updatedAt + 1 days - (dailyRewardPool.updatedAt % 1 days))){
     newReward.dailyRewardPool=dailyRewardPool.dailyRewardPoolToBeUpdated;
     dailyRewardPool.dailyRewardPool=dailyRewardPool.dailyRewardPoolToBeUpdated;
     dailyRewardPool.dailyRewardPoolToBeUpdated=0;
@@ -99,8 +99,8 @@ function calculateUserRewards(address _address) public view returns (uint) {
  uint claimableReward;
     rewardStruct[] memory rewards = userShares[_address];
    for(uint i=0; i<rewards.length;i++){
-    uint day=userShares[msg.sender][i].day;
-    if(block.timestamp/ 1 days>day){
+    uint day=userShares[_address][i].day;
+    if(block.timestamp>=(userShares[_address][i].timestamp + 1 days - (userShares[_address][i].timestamp % 1 days))){
     uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
  if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
   claimableReward = claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
@@ -117,8 +117,8 @@ function calculateRewards() public view returns (uint) {
    for(uint a=0;a<unclaimedAddresses.length;a++){
     rewardStruct[] memory rewards = userShares[unclaimedAddresses[a]];
    for(uint i=0; i<rewards.length;i++){
-    uint day=userShares[msg.sender][i].day;
-    if(block.timestamp/ 1 days>day){
+    uint day=rewards[i].day;
+    if(block.timestamp>=(rewards[i].timestamp + 1 days - (rewards[i].timestamp % 1 days))){
     uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
  if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
   claimableReward = claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
@@ -132,7 +132,7 @@ function calculateRewards() public view returns (uint) {
   return claimableReward;
 }
 function calculateDailyRewardPool() public view returns (uint) {
-  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp/1 days>=(dailyRewardPool.updatedAt/1 days)+1){
+  if(dailyRewardPool.dailyRewardPoolToBeUpdated>0&&block.timestamp>=(dailyRewardPool.updatedAt + 1 days - (dailyRewardPool.updatedAt % 1 days))){
     return dailyRewardPool.dailyRewardPoolToBeUpdated;
   }else{
     return dailyRewardPool.dailyRewardPool;
@@ -145,7 +145,7 @@ function claimReward() nonReentrant public{
   rewardStruct[] memory rewards = userShares[msg.sender];
    for(uint i=0; i<rewards.length;i++){
     uint day=userShares[msg.sender][i].day;
-    if(block.timestamp/ 1 days>day){
+    if(block.timestamp>=(userShares[msg.sender][i].timestamp + 1 days - (userShares[msg.sender][i].timestamp % 1 days))){
     uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
  if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
   if(rewards[i].TGE){
