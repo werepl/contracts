@@ -149,9 +149,9 @@ function claimReward() nonReentrant public{
     uint dailySharesClaimed = rewards[i].validatorReward?dailySharesClaimedByValidators[day]:dailySharesClaimedByUsers[day];
  if(dailySharesClaimed*(10**18)<(rewards[i].dailyRewardPool/2)){
   if(rewards[i].TGE){
-  claimableReward=claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*2)/1000;
+  claimableReward = claimableReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
   }else{
-    beforeTGEReward = beforeTGEReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*2)/1000;
+   beforeTGEReward = beforeTGEReward+dailySharesClaimed*((rewards[i].dailyRewardPool/2)*5)/10000;
   }
   }
     if(dailySharesClaimed*(10**18)>=rewards[i].dailyRewardPool) {
