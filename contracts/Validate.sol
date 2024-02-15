@@ -45,6 +45,8 @@ contract Validate is ReentrancyGuard, Ownable, ValidateInterface {
   mapping(address=>validator) public validators;
   enum proposalStatus {pending, approved, rejected}
   struct proposal{
+    string domain;
+    string TOA;
     bool validated;
     address validator;
     proposalStatus status;
@@ -81,8 +83,8 @@ function setITContract(address _address) onlyOwner public{
 }
 function listValidator(address _validator) onlyWerepl public{
   require(validators[_validator].status==validatorStatus.unlisted,"Already listed");
-   validators[msg.sender].status=validatorStatus.listed;
-   emit ListValidator(msg.sender);
+   validators[_validator].status=validatorStatus.listed;
+   emit ListValidator(_validator);
 }
 function delistValidator(address _validator) onlyWerepl public{
   require(validators[_validator].status==validatorStatus.listed,"Not a validator");
@@ -118,7 +120,7 @@ function unstakeIT(uint _amount) nonReentrant public{
   validators[msg.sender].ITStaked-=_amount;
   emit UnstakeIT(msg.sender,_amount);
 }
-   function validateProposal(string memory _propId, string memory _domain, address _proposedby, address _validator) onlyWerepl public{
+   function validateProposal(string memory _propId, string memory _domain, string memory _TOA, address _proposedby, address _validator) onlyWerepl public{
       require(validators[_validator].status==validatorStatus.listed,"Not a validator");
           require(validators[msg.sender].ITStaked>=stakingRequired,"You should have a minimum IT amount staked.");
       require(proposals[_propId].validated==false,"The proposal has already been validated");
@@ -126,10 +128,12 @@ function unstakeIT(uint _amount) nonReentrant public{
       uint passId = passContract.passIds(_proposedby);
       (, , uint expiry) = passContract.passDetails(passId);
       if(passId!=0&&block.timestamp<expiry){
-      passContract.entry(passId,_propId,_domain,_validator);
+      passContract.entry(passId,_propId,_domain,_TOA,_validator);
       }
       }
       proposal memory newProposal;
+      newProposal.domain=_domain;
+      newProposal.TOA=_TOA;
       newProposal.validated=true;
       newProposal.validator=_validator;
       newProposal.status=proposalStatus.pending;

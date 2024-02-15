@@ -34,6 +34,7 @@ uint expiry;
 struct passEntry{
 string propId;
 string domain;
+string TOA;
 address  validator;
 uint    timestamp;
 }
@@ -104,12 +105,13 @@ function setRewardContract(address _address) onlyOwner public{
         passDetails[passIds[passDetails[_passId].owner]]=pass(passDetails[_passId].owner,passDetails[_passId].entries,block.timestamp+365 days);
         emit Renew(_passId);
     }
-   function entry(uint _passId, string memory _propId ,string memory _domain, address _validator) onlyValidateContract public{
+   function entry(uint _passId, string memory _propId ,string memory _domain, string memory _TOA, address _validator) onlyValidateContract public{
   require(balanceOf(passDetails[_passId].owner)!=0&&block.timestamp<passDetails[_passId].expiry,"Don't have pass");
    passDetails[_passId].entries=passDetails[_passId].entries+1;
    passEntry memory newEntry;
    newEntry.propId=_propId;
    newEntry.domain=_domain;
+   newEntry.TOA=_TOA;
    newEntry.validator=_validator;
    newEntry.timestamp=block.timestamp;
    passEntries[_passId].push(newEntry);
