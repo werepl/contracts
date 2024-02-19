@@ -42,7 +42,7 @@ function contractPayment(address _from, uint _amount) onlyWhitelistedContracts p
   burnableIT+=(_amount*20)/100;
   emit ContractPayment(_from,_amount);
 }
-function directPayment(string memory _wereplTxid ,uint _ITamount) payable public{
+function directPayment(string calldata _wereplTxid ,uint _ITamount) payable public{
   if(_ITamount>0){
   ITContract.transferFrom(msg.sender, address(this), _ITamount);
   burnableIT+=(_ITamount*20)/100;

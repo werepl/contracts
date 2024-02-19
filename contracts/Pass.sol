@@ -89,7 +89,7 @@ function setValidateContract(address _address) onlyOwner public{
 function setRewardContract(address _address) onlyOwner public{
   rewardContract=Reward(payable(_address));
 }
-    function mint(address _to, string memory _URI) onlyWerepl external
+    function mint(address _to, string calldata _URI) onlyWerepl external
     {
       require(passIds[_to]==0,"Already minted");
           uint tokenId = _tokenIds.current();
@@ -105,7 +105,7 @@ function setRewardContract(address _address) onlyOwner public{
         passDetails[passIds[passDetails[_passId].owner]]=pass(passDetails[_passId].owner,passDetails[_passId].entries,block.timestamp+365 days);
         emit Renew(_passId);
     }
-   function entry(uint _passId, string memory _propId ,string memory _domain, string memory _TOA, address _validator) onlyValidateContract public{
+   function entry(uint _passId, string calldata _propId ,string calldata _domain, string calldata _TOA, address _validator) onlyValidateContract public{
   require(balanceOf(passDetails[_passId].owner)!=0&&block.timestamp<passDetails[_passId].expiry,"Don't have pass");
    passDetails[_passId].entries=passDetails[_passId].entries+1;
    passEntry memory newEntry;

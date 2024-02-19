@@ -120,7 +120,7 @@ function unstakeIT(uint _amount) nonReentrant public{
   validators[msg.sender].ITStaked-=_amount;
   emit UnstakeIT(msg.sender,_amount);
 }
-   function validateProposal(string memory _propId, string memory _domain, string memory _TOA, address _proposedby, address _validator) onlyWerepl public{
+   function validateProposal(string calldata _propId, string calldata _domain, string calldata _TOA, address _proposedby, address _validator) onlyWerepl public{
       require(validators[_validator].status==validatorStatus.listed,"Not a validator");
           require(validators[msg.sender].ITStaked>=stakingRequired,"You should have a minimum IT amount staked.");
       require(proposals[_propId].validated==false,"The proposal has already been validated");
@@ -171,14 +171,14 @@ function imposePenalty(address _validator) private{
 }
 }
 }
-   function approveProposal(string memory _propId) onlyWerepl public{
+   function approveProposal(string calldata _propId) onlyWerepl public{
      require(proposals[_propId].validated==true,"This proposal has not been validated");
      require(proposals[_propId].status==proposalStatus.pending,"The proposal is already approved or rejected");
      proposals[_propId].status=proposalStatus.approved;
     rewardContract.reward(0,proposals[_propId].validator);
    }
    
-   function rejectProposal(string memory _propId) onlyWerepl public{
+   function rejectProposal(string calldata _propId) onlyWerepl public{
      require(proposals[_propId].validated==true,"This proposal has not been validated");
      require(proposals[_propId].status==proposalStatus.pending,"The proposal is already approved or rejected");
      proposals[_propId].status=proposalStatus.rejected;
